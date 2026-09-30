@@ -1,0 +1,92 @@
+EVEN RSA CAN BE BROKEN???
+
+Category: Cryptography
+Author: regexp
+Flag format: academy{...}
+
+Challenge Description:
+
+This service provides you an encrypted flag. Can you decrypt it with just N & e? Connect to the program with netcat:
+$ nc chatelaine.cylabacademy.net 17673
+The program's source code can be downloaded here.
+
+Flag:
+
+academy{tw0_1$_pr!m3207f407f}
+
+Output for command:
+
+N: 22869317769344842065033174679527197254435940488438170952713260068720445610553544602030407433049854599496179389380222594579980709786696700861187618840551326
+e: 65537
+cyphertext: 2813593999242532761807959989985133545483648913491877905945303073434600922274401892569111486353181948439217873328361395010199149996066684692186177881395797
+
+Source Code:
+
+from sys import exit
+from Crypto.Util.number import bytes_to_long, inverse
+from setup import get_primes
+
+
+e = 65537
+
+
+def gen_key(k):
+    """
+    Generates RSA key with k bits
+    """
+    p,q = get_primes(k//2)
+    N = p*q
+    d = inverse(e, (p-1)*(q-1))
+
+
+    return ((N,e), d)
+
+
+def encrypt(pubkey, m):
+    N,e = pubkey
+    return pow(bytes_to_long(m.encode('utf-8')), e, N)
+
+
+def main(flag):
+    pubkey, _privkey = gen_key(1024)
+    encrypted = encrypt(pubkey, flag)
+    return (pubkey[0], encrypted)
+
+
+if __name__ == "__main__":
+    flag = open('flag.txt', 'r').read()
+    flag = flag.strip()
+    N, cypher  = main(flag)
+    print("N:", N)
+    print("e:", e)
+    print("cyphertext:", cypher)
+    exit()
+
+Python Code (Fermat’s Method):
+
+N = 21390125545200704618484025433435772097481816758528776951672824581055138767852927069817272212129902866985982737210506886068193023944526445571229026733034686
+c = 19432097473381268496493906840425277325899683271000070625856594920745680464214325808542460626187139618176656743974114408911884265777163061229842695259531973
+e = 65537
+
+p = 2
+q = N // p
+d = pow(e, -1, (p - 1) * (q - 1))
+m = pow(c, d, N)
+print(m.to_bytes((m.bit_length() + 7) // 8, "big").decode())
+
+Fermat’s Method:
+
+Fermat's method is based on the fact that any odd number N = p × q can be written as a difference of two squares, N = a² − b², because a² − b² factors into (a − b)(a + b), so once you find a and b, the factors are simply p = a − b and q = a + b. The code hunts for such a and b by guessing. It starts with a = isqrt(N) + 1, the smallest whole number whose square is at least N (a has to be at least the square root of N, since a² = N + b²). Then, inside a loop, it computes b2 = a*a - N, which is the value b² would have to equal if this a were correct. It takes b = isqrt(b2), the integer square root of that value, and checks if b*b == b2, which is true only when b2 is a perfect square. If it is, we have found a valid pair, and the function returns a - b, a + b as the two factors. If not, a += 1 moves to the next candidate and the loop repeats. For example, with N = 91, a = 10 gives b2 = 9, which is 3², so the factors are 7 and 13. The method is fast only when p and q are close together, because then the correct a sits just above √N and is found within a few steps; when the primes are far apart, the loop could run practically forever, and it also assumes N is odd. 
+
+Output:
+
+It gave the flag in the output for this. academy{tw0_1$_pr!m3207f407f}
+
+Understanding the code:
+
+RSA works like this:
+Two secret primes, p and q, are picked.
+N = p × q is public, and so is e = 65537.
+The flag is turned into a number m and encrypted as c = m^e mod N.
+To decrypt, you need d, which can only be computed if you know p and q.
+The whole security of RSA rests on N being impossible to factor. The challenge says "with just N & e", which is a hint that N is factorable. The file imports get_primes from setup.py, which you don't have. That is probably where the weakness is (small primes, primes too close together, etc.).
