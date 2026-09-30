@@ -1,0 +1,86 @@
+Category: Forensics
+Author: regexp
+Flag format: academy{...}
+
+Challenge Description:
+
+RED, RED, RED, RED Download the image: red.png
+
+The solve chain is: metadata hint → LSB bitstream → Base64 → flag.
+
+Metadata recon:
+
+The PNG carries a tEXt chunk with an 8-line poem whose first letters spell CHECK LSB.
+A solid-colour image with nothing visible is a classic sign of hidden data, so the first move was to dump printable strings from the file:
+strings red.png
+
+Among the PNG chunk names, the output shows a tEXt chunk keyed Poem. Reading the first letter of each line gives an acrostic:
+Line opening
+Letter
+Crimson heart…
+C
+Hearts flutter…
+H
+Evenings glow…
+E
+Cherries burst…
+C
+Kisses linger…
+K
+Love deep…
+L
+Scarlet leaves…
+S
+Bold in every…
+B
+
+The hint points directly at Least Significant Bit steganography in the pixel data.
+
+LSB extraction across RGBA:
+
+The message is spread over the LSBs of all four channels per pixel, read R, G, B, A in row-major order, 8 bits per byte, MSB first.
+The pixel values wobble between 254/255 and 0/1, which looks like pure red to the eye but leaves a 1-bit signal in each channel.
+
+Extracting only the R channel produced noise, so all four channels had to be combined in order:
+from PIL import Image
+
+img = Image.open('red.png').convert('RGBA')
+w, h = img.size
+pixels = img.load()
+
+bits = []
+for y in range(h):
+    for x in range(w):
+        p = pixels[x, y]
+        for ch in range(4):  # R, G, B, A
+            bits.append(p[ch] & 1)
+
+# Pack bits into bytes, MSB first
+data = bytearray()
+for i in range(0, len(bits) - 7, 8):
+    byte = 0
+    for b in bits[i:i+8]:
+        byte = (byte << 1) | b
+    data.append(byte)
+
+print(bytes(data)[:80])
+A 128×128 image gives 65,536 bits (8,192 bytes) of capacity. The start of the output is readable ASCII that repeats:
+YWNhZGVteXtyM2RfMXNfdGgzX3VsdDFtNHQzX2N1cjNfZjByXzU0ZG4zNTVffQ==
+
+The character set (A–Z, a–z, 0–9) and the trailing == padding identify it as Base64.
+
+Base64 decode:
+
+Decoding the Base64 string yields the flag directly.
+import base64
+print(base64.b64decode("YWNhZGVteXtyM2RfMXNfdGgzX3VsdDFtNHQzX2N1cjNfZjByXzU0ZG4zNTVffQ=="))
+
+Output:
+b'academy{r3d_1s_th3_ult1m4t3_cur3_f0r_54dn355_}'
+
+Flag: academy{r3d_1s_th3_ult1m4t3_cur3_f0r_54dn355_}
+
+Why this works:
+
+Flipping a channel's lowest bit changes its value by at most 1 out of 255, which is invisible, so each channel can carry one hidden bit.
+Each pixel has four 0–255 channels: Red, Green, Blue and Alpha (opacity). A pixel like (254, 1, 0, 255) still renders as pure red, but its LSBs read 0, 1, 0, 1. The twist in this challenge was using all four channels, so a single-channel script returns noise. When the obvious extraction fails, try other channel orders, bit orders and channel combinations — or a tool like zsteg, which tests many layouts automatically.
