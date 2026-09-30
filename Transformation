@@ -1,0 +1,48 @@
+Transformations
+
+Category: Reverse Engineering
+Author: regexp
+Flag format: academy{...}
+
+Challenge Description:
+
+I wonder what this really is... enc
+''.join([chr((ord(flag[i]) << 8) + ord(flag[i + 1])) for i in range(0, len(flag), 2)])
+
+Encoded Message:
+
+慣慤敭祻ㄶ形楴獟楮獴㌴摟潦弸強㤰扡㌷敽
+
+Flag:
+
+academy{16_bits_inst34d_of_8_790ba37e}
+
+Encoded?:
+
+I downloaded the enc and opened the file on VScode. They looked like Chinese/East Asian alphabets, but still seemed a bit fishy to me.
+
+Hence, I opened dCode.fr, and ran it through the Cipher Identifier. It showed me that there was an approximately 20% chance that it could be a ROT8000 cipher, so I tried to decode it. However, the output the website gave me turned out to be random symbols.
+
+Python Code?:
+
+The line of text given plainly (not the enc file) was run by me on a python interpreter. I thought it would be in python since it was not defining any class or function, like they do in Java and C. (they might have it in python, but I don't have much experience with that language).
+
+However, the code didn't run, and gave an error:
+
+NameError: name ‘flag’ is not defined. Did you mean ‘float’?
+
+Hence, it suggested that ‘flag’ did not exist in the code. Hence, I thought this would be a clue that we had to find the flag.
+
+To decode it:
+
+enc = "慣慤敭祻ㄶ形楴獟楮獴㌴摟潦弸強㤰扡㌷敽"
+
+flag = ""
+for c in enc:
+    n = ord(c)
+    flag += chr(n >> 8)
+    flag += chr(n & 0xFF)
+
+print(flag)
+
+//In the output of this code, the flag was printed.
