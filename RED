@@ -80,6 +80,8 @@ b'academy{r3d_1s_th3_ult1m4t3_cur3_f0r_54dn355_}'
 
 Flag: academy{r3d_1s_th3_ult1m4t3_cur3_f0r_54dn355_}
 
+I used claude to write the python code (i dont know how to code in python, but i only understadn the code)
+
 Why this works:
 
 Flipping a channel's lowest bit changes its value by at most 1 out of 255, which is invisible, so each channel can carry one hidden bit.
