@@ -90,3 +90,6 @@ N = p × q is public, and so is e = 65537.
 The flag is turned into a number m and encrypted as c = m^e mod N.
 To decrypt, you need d, which can only be computed if you know p and q.
 The whole security of RSA rests on N being impossible to factor. The challenge says "with just N & e", which is a hint that N is factorable. The file imports get_primes from setup.py, which you don't have. That is probably where the weakness is (small primes, primes too close together, etc.).
+
+
+I used claude to solve this question for the code writing part.
