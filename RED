@@ -86,3 +86,6 @@ Why this works:
 
 Flipping a channel's lowest bit changes its value by at most 1 out of 255, which is invisible, so each channel can carry one hidden bit.
 Each pixel has four 0–255 channels: Red, Green, Blue and Alpha (opacity). A pixel like (254, 1, 0, 255) still renders as pure red, but its LSBs read 0, 1, 0, 1. The twist in this challenge was using all four channels, so a single-channel script returns noise. When the obvious extraction fails, try other channel orders, bit orders and channel combinations — or a tool like zsteg, which tests many layouts automatically.
+
+
+i used claude for lsb extraction rgba and onwards.
